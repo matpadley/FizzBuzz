@@ -1,0 +1,64 @@
+#addin "Cake.Incubator&version=5.1.0"
+
+//////////////////////////////////////////////////////////////////////
+// ARGUMENTS
+//////////////////////////////////////////////////////////////////////
+
+var target = Argument("target", "Default");
+var configuration = Argument("configuration", "Release");
+var fizzBuzzSolution = "./FizzBuzz/FizzBuzz.sln";
+
+//////////////////////////////////////////////////////////////////////
+// PREPARATION
+//////////////////////////////////////////////////////////////////////
+
+// Define directories.
+var buildDir = Directory("./src/FizzBuzz/bin") + Directory(configuration);
+
+//////////////////////////////////////////////////////////////////////
+// TASKS
+//////////////////////////////////////////////////////////////////////
+
+Task("Clean")
+    .Does(() =>
+{
+    CleanDirectory(buildDir);
+});
+
+Task("Restore")
+    .IsDependentOn("Clean")
+    .Does(() =>
+{
+    DotNetCoreRestore("./FizzBuzz/FizzBuzz.sln");
+});
+
+Task("Build")
+    .IsDependentOn("Restore")
+    .Does(() =>
+{
+    DotNetCoreBuild(fizzBuzzSolution,
+           new DotNetCoreBuildSettings()
+                {
+                    Configuration = configuration
+                });
+});
+
+Task("Run-Unit-Tests")
+    .IsDependentOn("Build")
+    .Does(() =>
+{
+    DotNetCoreTest("./FizzBuzz/FizzBuzz.Tests/FizzBuzz.Tests.csproj");
+});
+
+//////////////////////////////////////////////////////////////////////
+// TASK TARGETS
+//////////////////////////////////////////////////////////////////////
+
+Task("Default")
+    .IsDependentOn("Run-Unit-Tests");
+
+//////////////////////////////////////////////////////////////////////
+// EXECUTION
+//////////////////////////////////////////////////////////////////////
+
+RunTarget(target);
